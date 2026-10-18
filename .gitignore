@@ -2,7 +2,7 @@
 __pycache__/
 node_modules/
 web/dist/
-server/db.sqlite
+server/db.sqlite*
 server/outbox/
 server/snapshots/
 server/reports/

@@ -17,8 +17,10 @@ android {
 }
 
 dependencies {
-    // Compile against the public API; each app picks the runtime (local AAR or Maven).
-    compileOnly(rootProject.extra["executorchMaven"] as String)
+    // Compile against the same runtime the apps ship (local AAR if present, else Maven): the Java API
+    // differs between versions (e.g. Module.loadMethod returns int in 1.0.0, void in 1.5.1).
+    val aar = rootProject.extra["executorchAar"] as File?
+    if (aar != null) compileOnly(files(aar)) else compileOnly(rootProject.extra["executorchMaven"] as String)
 
     api("com.squareup.okhttp3:okhttp:4.12.0")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")

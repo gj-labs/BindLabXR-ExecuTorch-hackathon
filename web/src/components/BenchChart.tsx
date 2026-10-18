@@ -9,10 +9,14 @@ const BACKENDS = [
 
 const W = 640, H = 300, M = { t: 16, r: 16, b: 40, l: 56 }
 
-/** Latest row per (model, backend) for one device. */
+/** Latest row per (model, backend) for one device. The phone app reports "esm2_8M", the CLI script "8M". */
 function latest(rows: BenchRow[], device: string) {
   const m = new Map<string, BenchRow>()
-  for (const r of rows) if (r.device === device) m.set(`${r.model}|${r.backend}`, r)
+  for (const r of rows) {
+    if (r.device !== device) continue
+    const model = r.model.replace(/^esm2_/i, '')
+    m.set(`${model}|${r.backend}`, { ...r, model })
+  }
   return m
 }
 
@@ -53,7 +57,7 @@ export function BenchChart({ rows, device }: { rows: BenchRow[]; device: 's25' |
                 <td>ESM2-{r!.model}</td><td>{r!.backend}</td><td>{r!.status}{r!.error ? ` (${r!.error})` : ''}</td>
                 <td>{r!.load_ms?.toFixed(0) ?? '–'}</td><td>{r!.p50_ms?.toFixed(1) ?? '–'}</td>
                 <td>{r!.p95_ms?.toFixed(1) ?? '–'}</td><td>{r!.peak_rss_mb?.toFixed(0) ?? '–'}</td>
-                <td>{r!.thermal_headroom ?? '–'}</td>
+                <td>{r!.thermal_headroom?.toFixed(2) ?? "–"}</td>
               </tr>
             )))}
           </tbody>
