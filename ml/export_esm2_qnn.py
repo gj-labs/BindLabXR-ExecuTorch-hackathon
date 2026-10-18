@@ -220,6 +220,8 @@ def main():
     ap.add_argument("--n_calib", type=int, default=50)
     ap.add_argument("--contacts", choices=["auto", "on", "off"], default="auto")
     ap.add_argument("--ids_dtype", choices=["int32", "int64"], default="int32")
+    ap.add_argument("--quant", choices=["16a8w", "8a8w"], default="16a8w",
+                    help="8a8w for Galaxy XR (V69): its HTP rejects 16-bit ReduceSum/Mul/Div")
     ap.add_argument("--build_folder", default=os.environ.get("ET_BUILD_ANDROID", "build-android"),
                     help="ExecuTorch android cmake build dir (QnnConfig requires the field; not used with compile_only)")
     ap.add_argument("--cpu_check", action="store_true", help="validate the graph in eager fp32; no QNN needed")
@@ -249,7 +251,7 @@ def main():
     write_vocab()
     for k, (shard, data) in enumerate(zip(shards, datasets)):
         stem = ARTIFACTS / pte_name(a.size, a.soc_model, k, num_shards)
-        quantizer = make_quantizer(quant_dtype=QuantDtype.use_16a8w, eps=2**-20,
+        quantizer = make_quantizer(quant_dtype={"16a8w": QuantDtype.use_16a8w, "8a8w": QuantDtype.use_8a8w}[a.quant], eps=2**-20,
                                    backend=qcfg.backend, soc_model=a.soc_model)
         print(f"[qnn {a.size}] shard {k + 1}/{num_shards}: layers [{shard.start}, {shard.end}), "
               f"calibrating on {len(data)} seqs -> {stem}.pte")
@@ -268,7 +270,7 @@ def main():
         out_names = (["embedding"] + (["contacts"] if shard.contacts else [])) if shard.last else ["hidden", "keep"]
         entry = update_manifest(
             stem.with_suffix(".pte"), kind="esm2", model_id=ESM2_MODELS[a.size], size=a.size,
-            backend="qnn", soc_model=a.soc_model, qairt_version=QAIRT_VERSION, quant="16a8w",
+            backend="qnn", soc_model=a.soc_model, qairt_version=QAIRT_VERSION, quant=a.quant,
             shard={"index": k, "count": num_shards, "layers": [shard.start, shard.end]} if num_shards > 1 else None,
             inputs=[{"name": n, **s} for n, s in zip(in_names, shapes(data[0]))],
             outputs=[{"name": n, **s} for n, s in zip(out_names, shapes(outs))],

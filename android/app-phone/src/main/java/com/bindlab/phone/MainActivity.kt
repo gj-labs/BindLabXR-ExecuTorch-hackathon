@@ -33,6 +33,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Headless benchmarking (e.g. on Galaxy XR, where the panel can't be tapped over adb):
+        // adb shell am start -n com.bindlab.phone/.MainActivity --ez autorun_ladder true [--ez sustained true]
+        if (savedInstanceState == null && intent.getBooleanExtra("autorun_ladder", false)) {
+            vm.sustained.value = intent.getBooleanExtra("sustained", false)
+            vm.runLadder()
+        }
         setContent {
             MaterialTheme {
                 var tab by rememberSaveable { mutableIntStateOf(0) }

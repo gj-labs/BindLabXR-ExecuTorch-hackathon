@@ -124,12 +124,12 @@ class PhoneViewModel(app: Application) : AndroidViewModel(app) {
                     val (engine, path) = ModelStore.engineFor(files) { ExecuTorchModule(ctx) }
                     val result = try {
                         recorder.measure(
-                            "s25", EsmModels.modelName(row.size), row.backend, TokenDtypeAdapter(engine), path,
+                            deviceTag, EsmModels.modelName(row.size), row.backend, TokenDtypeAdapter(engine), path,
                             tokenInputs(seq), sustained.value,
                         ) { p -> updateRow(row.size, row.backend) { it.copy(detail = p) } }
                     } catch (e: OutOfMemoryError) {
                         engine.close()
-                        BenchResult("s25", EsmModels.modelName(row.size), row.backend, status = "oom", error = "Java OOM")
+                        BenchResult(deviceTag, EsmModels.modelName(row.size), row.backend, status = "oom", error = "Java OOM")
                     }
                     prefs.edit().remove(KEY_INFLIGHT).commit()
                     updateRow(row.size, row.backend) { it.copy(phase = result.status, detail = summary(result), result = result) }
@@ -158,7 +158,7 @@ class PhoneViewModel(app: Application) : AndroidViewModel(app) {
         prefs.edit().remove(KEY_INFLIGHT).apply()
         val (size, be) = inflight.split("|").let { it[0] to it.getOrElse(1) { "qnn" } }
         val r = BenchResult(
-            "s25", EsmModels.modelName(size), be, status = "oom",
+            deviceTag, EsmModels.modelName(size), be, status = "oom",
             error = "app process was killed during this model (native OOM / low-memory killer)",
         )
         updateRow(size, be) { it.copy(phase = "oom", detail = r.error!!, result = r) }
@@ -223,3 +223,7 @@ class PhoneViewModel(app: Application) : AndroidViewModel(app) {
         fun fmt(v: Double?, digits: Int = 1) = v?.let { "%.${digits}f".format(it) } ?: "–"
     }
 }
+
+/** Bench label for the dashboard: the Galaxy XR (SXR2230P) runs this app too, for its CPU ladder. */
+private val deviceTag: String =
+    if (android.os.Build.VERSION.SDK_INT >= 31 && android.os.Build.SOC_MODEL.startsWith("SXR")) "xr" else "s25"

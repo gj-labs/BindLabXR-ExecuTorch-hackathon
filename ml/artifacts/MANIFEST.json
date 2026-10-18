@@ -262,6 +262,42 @@
       }
     },
     {
+      "file": "esm2_3B_xnnpack.pte",
+      "kind": "esm2",
+      "model_id": "facebook/esm2_t36_3B_UR50D",
+      "size": "3B",
+      "backend": "xnnpack",
+      "quant": "8da4w",
+      "group_size": 32,
+      "soc_model": null,
+      "qairt_version": null,
+      "inputs": [
+        {
+          "name": "input_ids",
+          "shape": [
+            1,
+            256
+          ],
+          "dtype": "int64"
+        }
+      ],
+      "outputs": [
+        {
+          "name": "embedding",
+          "shape": [
+            1,
+            2560
+          ],
+          "dtype": "float32"
+        }
+      ],
+      "seq_len": 256,
+      "vocab": "esm2_vocab.json",
+      "size_bytes": 1598362112,
+      "sha256": "7d439d005ca00de820f629fc4ca49005ca8eec42e41258f8c46458648cd41750",
+      "updated": "2026-10-18T22:52:28+00:00"
+    },
+    {
       "file": "esm2_650M_qnn.pte",
       "kind": "esm2",
       "model_id": "facebook/esm2_t33_650M_UR50D",
